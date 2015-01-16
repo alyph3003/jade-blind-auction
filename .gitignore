@@ -1,0 +1,6 @@
+# Ignore unneeded files.
+*.swp
+*~
+
+# ctags TAGS
+TAGS
