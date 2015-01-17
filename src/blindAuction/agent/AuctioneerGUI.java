@@ -2,6 +2,7 @@
 JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
+Modified by Yuri Ardila, 2015
 
 GNU Lesser General Public License
 
@@ -21,7 +22,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package blindAuction;
+// package blindAuction;
 
 import jade.core.AID;
 
@@ -29,19 +30,19 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import blindAuction.agent.Auctioneer;
+// import blindAuction.agent.Auctioneer;
 
 /**
    @author Giovanni Caire - TILAB
    editted by Yuri Ardila, 2014 for blindAuction project
 */
-public class AuctioneerGUI extends JFrame {	
+class AuctioneerGUI extends JFrame {	
 
 	private Auctioneer myAgent;
 	
 	private JTextField titleField, priceField;
 	
-	public AuctioneerGUI(Auctioneer a) {
+    AuctioneerGUI(Auctioneer a) {
 		super(a.getLocalName());
 		
 		myAgent = a;
@@ -51,7 +52,7 @@ public class AuctioneerGUI extends JFrame {
 		p.add(new JLabel("Book title:"));
 		titleField = new JTextField(15);
 		p.add(titleField);
-		p.add(new JLabel("Price:"));
+		p.add(new JLabel("Initial Price:"));
 		priceField = new JTextField(15);
 		p.add(priceField);
 		getContentPane().add(p, BorderLayout.CENTER);
@@ -77,7 +78,7 @@ public class AuctioneerGUI extends JFrame {
 		
 		// Make the agent terminate when the user closes 
 		// the GUI using the button on the upper right corner	
-		addWindowListener(new	WindowAdapter() {
+		addWindowListener(new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {
                     myAgent.doDelete();
                 }

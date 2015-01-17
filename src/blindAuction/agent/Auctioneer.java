@@ -1,4 +1,28 @@
-package blindAuction.agent;
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+Modified by Yuri Ardila, 2015
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+// package blindAuction.agent;
 
 import jade.core.Agent;
 import jade.core.AID;
@@ -12,16 +36,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import java.util.*;
 
-import blindAuction.AuctioneerGUI;
-
 /**
  * JADE agent representing an auctioneer of an auction.
  * It has single sequential behavior representing its lifecycle.
- * <ol>
- *  <li> 
- * </ol>
- * 
- * As an init param this agent accepts the number of rounds to be played.
  */
 public class Auctioneer extends Agent {
 
@@ -35,16 +52,20 @@ public class Auctioneer extends Agent {
     private boolean auctionStarted = false;
 
     // The template to receive replies
-    static MessageTemplate mt; 
+    public MessageTemplate mt; 
 
     // The list of known bidders
-	static AID[] bidders;
+	public AID[] bidders;
 
     // The bidder who provides the best offer
-    static AID bestBidder;
+    public AID bestBidder;
 
     // The most updated best offered price
-    static int bestPrice;
+    public int bestPrice;
+
+    public boolean biddersFound = false;
+    public boolean CFPSent = false;
+    public boolean bidsReceived = false;
 
     @Override
     protected void setup() {
@@ -59,29 +80,12 @@ public class Auctioneer extends Agent {
 		myGui = new AuctioneerGUI(this);
 		myGui.showGui();
        
-        // Sleep for 20 sec, so that user can add item to cataloge
-        System.out.println("Please add an item for auction within 20 seconds..");
-        try {
-            Thread.currentThread().sleep(20000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
         // Add a TickerBehaviour that schedules a request to bidders every minute
         addBehaviour(new ActionPerMinute(this));
     }
 
 	// Put agent clean-up operations here
 	protected void takeDown() {
-
-		// Deregister from the yellow pages
-		try {
-			DFService.deregister(this);
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-
 		// Close the GUI
 		myGui.dispose();
 
@@ -98,7 +102,7 @@ public class Auctioneer extends Agent {
                      new OneShotBehaviour() {
                          public void action() {
                              catalogue.put(title, new Integer(price));
-                             System.out.println(title+" inserted into catalogue. Price = "+price);
+                             System.out.println(title+" is inserted into catalogue. Price = "+price);
                          }
                      }
                      );
@@ -128,6 +132,17 @@ public class Auctioneer extends Agent {
     public String getFirstItemName() {
         return (String)catalogue.keySet().toArray()[0];
     }
+
+    public int getItemInitialPrice(final String title) {
+        Integer price = (Integer) catalogue.get(title);
+        if (price != null) {
+            return (int)price;
+        }
+        else {
+            return 0;
+        }
+    }
+
 }
 
 // Add a TickerBehaviour that schedules an auction to bidders every minute
@@ -135,14 +150,10 @@ class ActionPerMinute extends TickerBehaviour {
 
     private Auctioneer myAgent;
 
-    private boolean biddersFound = false;
-    private boolean CFPSent = false;
-    private boolean bidsReceived = false;
-
     private String currentItemName;
 
     public ActionPerMinute(Auctioneer agent) {
-        super(agent, 60000);
+        super(agent, 10000);
         myAgent = agent;
     }
 
@@ -150,9 +161,9 @@ class ActionPerMinute extends TickerBehaviour {
     protected void onTick(){
 
         // Initialize all conditions
-        biddersFound = false;
-        CFPSent = false;
-        bidsReceived = false;
+        myAgent.biddersFound = false;
+        myAgent.CFPSent = false;
+        myAgent.bidsReceived = false;
         
         // If there is any item to sell
         if (!myAgent.isCatalogueEmpty()) {
@@ -160,33 +171,27 @@ class ActionPerMinute extends TickerBehaviour {
             currentItemName = myAgent.getFirstItemName();
             System.out.println("Starting auction for item " + currentItemName);
 
+            System.out.println("Waiting for bidders.. ");
+
             // Find Bidder
-            if (!biddersFound) {
-                myAgent.addBehaviour(new FindBidder(myAgent));
-                biddersFound = true;
-            }
-        
+            myAgent.addBehaviour(new FindBidder(myAgent));
+                    
             // Send CFP to all bidders
-            if (!CFPSent) {
-                myAgent.addBehaviour(new SendCFP(myAgent, currentItemName));
-                CFPSent = true;
-            }
-            
+            myAgent.addBehaviour(new SendCFP(myAgent, currentItemName, myAgent.getItemInitialPrice(currentItemName)));
+
             // Receive all proposals/refusals from bidders and find the highest bidder
-            if (CFPSent) {
-                myAgent.addBehaviour(new ReceiveBids(myAgent));
-                bidsReceived = true;
-            }
+            myAgent.addBehaviour(new ReceiveBids(myAgent));
             
             // Send the request order to the bidder that provided the best offer
-            if (bidsReceived) {
-                myAgent.addBehaviour(new AnnounceWinnerAndUpdateCatalogue(myAgent, currentItemName));
-            }
+            myAgent.addBehaviour(new AnnounceWinnerAndUpdateCatalogue(myAgent, currentItemName));
         }        
+        else {
+			System.out.println("Please add an item before we can commence auctions");
+        }
     }
 }
 
-class FindBidder extends CyclicBehaviour {
+class FindBidder extends Behaviour {
 
     private Auctioneer myAgent;
 
@@ -196,62 +201,87 @@ class FindBidder extends CyclicBehaviour {
     }
     
     public void action() {
-        // Update the list of bidders
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("blind-bidders");
-        template.addServices(sd);
-        try {
-            DFAgentDescription[] result = DFService.search(myAgent, template); 
-            System.out.println("Found the following bidders:");
-            myAgent.bidders = new AID[result.length];
-            for (int i = 0; i < result.length; ++i) {
-                myAgent.bidders[i] = result[i].getName();
-                System.out.println(myAgent.bidders[i].getName());
+
+        if (!myAgent.biddersFound) {
+
+            // Update the list of bidders
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType("blind-auction");
+            template.addServices(sd);
+            try {
+                DFAgentDescription[] result = DFService.search(myAgent, template); 
+                if (result.length > 0) {
+                    System.out.println("Found the following " + result.length +" bidders:");
+                    myAgent.bidders = new AID[result.length];
+                    for (int i = 0; i < result.length; ++i) {
+                        myAgent.bidders[i] = result[i].getName();
+                        System.out.println(myAgent.bidders[i].getName());
+                    }
+                    myAgent.biddersFound = true;
+                }
             }
+            catch (FIPAException fe) {
+                fe.printStackTrace();
+            }
+
         }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
+    }
+
+    public boolean done() {
+        return myAgent.biddersFound;
     }
 }
 
 /**
    Send CFP to all bidders
 */
-class SendCFP extends CyclicBehaviour {
+class SendCFP extends Behaviour {
 
     private Auctioneer myAgent;
     private String itemName;
+    private int itemInitialPrice;
 
-    public SendCFP(Auctioneer agent, String itemName) {
+    public SendCFP(Auctioneer agent, String itemName, int itemInitialPrice) {
         super(agent);
         myAgent = agent;
         this.itemName = itemName;
+        this.itemInitialPrice = itemInitialPrice;
     }
     
     public void action() {
-        // Send the cfp to all bidders
-        System.out.println("Sending CFP to all bidders..");
-        ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-        for (int i = 0; i < myAgent.bidders.length; ++i) {
-            cfp.addReceiver(myAgent.bidders[i]);
-        } 
-        cfp.setContent(this.itemName);
-        cfp.setConversationId("blind-bid");
-        cfp.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
-        myAgent.send(cfp);
 
-        // Prepare message template
-        myAgent.mt = MessageTemplate.and(MessageTemplate.MatchConversationId("blind-bid"),
-                                         MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));        
+        if (!myAgent.CFPSent && myAgent.biddersFound) {
+
+            // Send the cfp to all bidders
+            System.out.println("Sending CFP to all bidders..");
+            ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+            for (int i = 0; i < myAgent.bidders.length; ++i) {
+                cfp.addReceiver(myAgent.bidders[i]);
+            } 
+            cfp.setContent(this.itemName + "," + this.itemInitialPrice);
+            cfp.setConversationId("blind-bid");
+            cfp.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
+            myAgent.send(cfp);
+
+            // Prepare message template
+            myAgent.mt = MessageTemplate.and(MessageTemplate.MatchConversationId("blind-bid"),
+                                             MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+        
+            myAgent.CFPSent = true;
+
+        }
+    }
+
+    public boolean done() {
+        return myAgent.CFPSent;
     }
 }
 
 /**
    Receive all proposals/refusals from bidders and find the highest bidder
 */
-class ReceiveBids extends CyclicBehaviour {
+class ReceiveBids extends Behaviour {
 
     private Auctioneer myAgent;
 
@@ -263,43 +293,54 @@ class ReceiveBids extends CyclicBehaviour {
     }
     
     public void action() {
-        // Receive all proposals/refusals from seller agents
-        ACLMessage reply = myAgent.receive(myAgent.mt);
-        if (reply != null) {
-            // Reply received
-            if (reply.getPerformative() == ACLMessage.PROPOSE) {
 
-                // This is an offer 
-                int price = Integer.parseInt(reply.getContent());
-                if (myAgent.bestBidder == null || price > myAgent.bestPrice) {
-                    // This is the best offer at present
-                    myAgent.bestPrice = price;
-                    myAgent.bestBidder = reply.getSender();
+        if (myAgent.CFPSent) {
+
+            // Receive all proposals/refusals from seller agents
+            ACLMessage reply = myAgent.receive(myAgent.mt);
+            if (reply != null) {
+                // Reply received
+                if (reply.getPerformative() == ACLMessage.PROPOSE) {
+
+                    // This is an offer 
+                    int price = Integer.parseInt(reply.getContent());
+                    if (myAgent.bestBidder == null || price > myAgent.bestPrice) {
+                        // This is the best offer at present
+                        myAgent.bestPrice = price;
+                        myAgent.bestBidder = reply.getSender();
+                    }
                 }
+
+                repliesCnt++;
+            }
+            else {
+                block();
+            }
+        
+            if (repliesCnt >= myAgent.bidders.length) {
+                // We have received all bids
+                myAgent.bidsReceived = true;
             }
 
-            repliesCnt++;
         }
-        else {
-            block();
-        }
-        
-        System.out.println("Waiting for all bids..");
-        if (repliesCnt < myAgent.bidders.length) {
-            // We havent received all bids
-            block();
-        }
+    }
+
+    public boolean done() {
+        return myAgent.bidsReceived;
     }
 }
 
 /**
-   Send the request order to the bidder that provided the best offer
-*/
-class AnnounceWinnerAndUpdateCatalogue extends CyclicBehaviour {
+ * Send the request order to the bidder that provided the best offer
+ * @condition: if there is any winner
+ */
+class AnnounceWinnerAndUpdateCatalogue extends Behaviour {
 
     private Auctioneer myAgent;
 
     private String itemName;
+
+    private boolean isDone = false;
 
     public AnnounceWinnerAndUpdateCatalogue(Auctioneer agent, String itemName) {
         this.itemName = itemName;
@@ -307,24 +348,45 @@ class AnnounceWinnerAndUpdateCatalogue extends CyclicBehaviour {
     }
     
     public void action() {
-        System.out.println("Announcing Winner..");
 
-        // Send the purchase order to the seller that provided the best offer
-        ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-        order.addReceiver(myAgent.bestBidder);
-        order.setContent(this.itemName);
-        order.setConversationId("blind-bid");
-        order.setReplyWith("order"+System.currentTimeMillis());
+        if (myAgent.bidsReceived) {
 
-        Integer price = (Integer) myAgent.removeItemFromCatalogue(this.itemName);
-        if (price != null) {
-            System.out.println(itemName+" sold to agent "+ myAgent.bestBidder.getName());
+            if (myAgent.bestPrice >= myAgent.getItemInitialPrice(this.itemName)){
+                // Send the purchase order to the seller that provided the best offer
+                ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+                order.addReceiver(myAgent.bestBidder);
+                order.setContent(this.itemName + "," + myAgent.bestPrice);
+                order.setConversationId("blind-bid");
+                order.setReplyWith("order"+System.currentTimeMillis());
+
+                System.out.println("Announcing Winner for " + this.itemName);        
+
+                Integer price = (Integer) myAgent.removeItemFromCatalogue(this.itemName);
+                if (price != null) {
+                    System.out.println(itemName+" sold to agent "+ myAgent.bestBidder.getName());
+                }
+                else {
+                    // The requested item has been sold to another buyer..somehow
+                    order.setPerformative(ACLMessage.FAILURE);
+                    order.setContent("not-available");
+                }
+                myAgent.send(order);
+
+                // Re-Initialize all conditions
+                myAgent.biddersFound = false;
+                myAgent.CFPSent = false;
+                myAgent.bidsReceived = false;                
+                myAgent.bestPrice = 0;
+                myAgent.bestBidder = null;
+            }
+            else {
+                System.out.println("No winner.. Bids were insufficient.");
+            }
+            isDone = true;
         }
-        else {
-            // The requested item has been sold to another buyer..somehow
-            order.setPerformative(ACLMessage.FAILURE);
-            order.setContent("not-available");
-        }
-        myAgent.send(order);
+    }
+
+    public boolean done() {
+        return isDone;
     }
 }
