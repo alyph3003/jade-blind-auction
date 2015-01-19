@@ -22,15 +22,13 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-// package blindAuction;
+package blindAuction;
 
 import jade.core.AID;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-
-// import blindAuction.agent.Auctioneer;
 
 /**
    @author Giovanni Caire - TILAB
@@ -43,13 +41,13 @@ class AuctioneerGUI extends JFrame {
 	private JTextField titleField, priceField;
 	
     AuctioneerGUI(Auctioneer a) {
-		super(a.getLocalName());
+		super(a.getLocalName() + ": Add item");
 		
 		myAgent = a;
 		
 		JPanel p = new JPanel();
 		p.setLayout(new GridLayout(2, 2));
-		p.add(new JLabel("Book title:"));
+		p.add(new JLabel("Item Name:"));
 		titleField = new JTextField(15);
 		p.add(titleField);
 		p.add(new JLabel("Initial Price:"));

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="blind-auction" default="lib" basedir=".">
+	<property name="root" location="."/>
+	<property name="lib" location="lib"/>
+	<property name="src" location="src"/>
+	<property name="doc" location="doc"/>
+	<property name="build" location="classes"/>
+	<property name="demo" location="demo"/>
+	<property name="build-jar" value="${build}/jar" />
+
+	<target name="init" depends="clean">
+		<!-- Create the time stamp -->
+		<tstamp/>
+
+		<!-- Create the directory structure -->
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}" />
+	</target>
+
+	<target name="lib" depends="blindAuction" description="generate jar archive">
+		<!-- Create the jade.jar file -->
+		<delete file="${lib}/blindAuction.jar" quiet="true"/>
+		<jar jarfile="${lib}/blindAuction.jar" basedir="${build}" />
+	</target>
+
+	<target name="blindAuction" depends="init" description="compile the source ">
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac srcdir="${src}" 
+		       destdir="${build}" 
+		       classpath="lib/jade.jar" 
+		       nowarn="on" 
+		       optimize="off" 
+		       debug="on" 
+		       debuglevel="lines,vars,source" 
+		       deprecation="on" 
+		       target="1.5"
+		       source="1.5"
+		       >
+		</javac>
+	</target>
+       
+</project>

@@ -22,7 +22,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-// package blindAuction.agent;
+package blindAuction;
 
 import jade.core.Agent;
 import jade.core.AID;
@@ -80,6 +80,7 @@ public class Auctioneer extends Agent {
 
 		// Create the catalogue
 		catalogue = new Hashtable();
+        updateCatalogue("ABC",1200);
 
 		// Create and show the GUI 
 		myGui = new AuctioneerGUI(this);
@@ -107,7 +108,7 @@ public class Auctioneer extends Agent {
                      new OneShotBehaviour() {
                          public void action() {
                              catalogue.put(title, new Integer(price));
-                             System.out.println(title+" is inserted into catalogue. Price = "+price);
+                             System.out.println(title+" is inserted into catalogue. Initial Price = "+price);
                          }
                      }
                      );

@@ -22,7 +22,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
  *****************************************************************/
 
-// package blindAuction;
+package blindAuction;
 
 import jade.core.AID;
 
@@ -31,8 +31,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import java.util.*;
-
-// import blindAuction.agent.BidderHuman;
 
 /**
    @author Giovanni Caire - TILAB
@@ -45,7 +43,7 @@ class BidderHumanGUI extends JFrame {
 	private JTextField moneyField,priceField;
 	
     BidderHumanGUI(BidderHuman a) {
-		super(a.getLocalName());
+		super(a.getLocalName() + ": Place bid or add money");
 		
 		myAgent = a;
 		
