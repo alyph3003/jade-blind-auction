@@ -67,11 +67,16 @@ public class Auctioneer extends Agent {
     public boolean CFPSent = false;
     public boolean bidsReceived = false;
 
+    public FindBidder p = null;
+    public SendCFP q = null;
+    public ReceiveBids r = null;
+    public AnnounceWinnerAndUpdateCatalogue s = null;
+
     @Override
     protected void setup() {
 
         // Printout a welcome message
-		System.out.println("Hello! Auctioneer "+getAID().getName()+" is ready.");
+		System.out.println("Hello! Auctioneer "+getAID().getName()+" is ready");
 
 		// Create the catalogue
 		catalogue = new Hashtable();
@@ -90,7 +95,7 @@ public class Auctioneer extends Agent {
 		myGui.dispose();
 
 		// Printout a dismissal message
-		System.out.println("Auctioneer "+getAID().getName()+" terminating.");
+		System.out.println("Auctioneer "+getAID().getName()+" terminating");
 	}
 
 	/**
@@ -168,22 +173,31 @@ class ActionPerMinute extends TickerBehaviour {
         // If there is any item to sell
         if (!myAgent.isCatalogueEmpty()) {
 
+            if (myAgent.p != null) myAgent.removeBehaviour(myAgent.p);
+            if (myAgent.q != null) myAgent.removeBehaviour(myAgent.q);
+            if (myAgent.r != null) myAgent.removeBehaviour(myAgent.r);
+            if (myAgent.s != null) myAgent.removeBehaviour(myAgent.s);
+
             currentItemName = myAgent.getFirstItemName();
             System.out.println("Starting auction for item " + currentItemName);
 
             System.out.println("Waiting for bidders.. ");
 
             // Find Bidder
-            myAgent.addBehaviour(new FindBidder(myAgent));
+            myAgent.p = new FindBidder(myAgent);
+            myAgent.addBehaviour(myAgent.p);
                     
             // Send CFP to all bidders
-            myAgent.addBehaviour(new SendCFP(myAgent, currentItemName, myAgent.getItemInitialPrice(currentItemName)));
+            myAgent.q = new SendCFP(myAgent, currentItemName, myAgent.getItemInitialPrice(currentItemName));
+            myAgent.addBehaviour(myAgent.q);
 
             // Receive all proposals/refusals from bidders and find the highest bidder
-            myAgent.addBehaviour(new ReceiveBids(myAgent));
+            myAgent.r = new ReceiveBids(myAgent);
+            myAgent.addBehaviour(myAgent.r);
             
             // Send the request order to the bidder that provided the best offer
-            myAgent.addBehaviour(new AnnounceWinnerAndUpdateCatalogue(myAgent, currentItemName));
+            myAgent.s = new AnnounceWinnerAndUpdateCatalogue(myAgent, currentItemName);
+            myAgent.addBehaviour(myAgent.s);
         }        
         else {
 			System.out.println("Please add an item before we can commence auctions");
@@ -194,6 +208,9 @@ class ActionPerMinute extends TickerBehaviour {
 class FindBidder extends Behaviour {
 
     private Auctioneer myAgent;
+
+    private boolean noBidder = false;
+    private boolean oneBidder = false;
 
     public FindBidder(Auctioneer agent) {
         super(agent);
@@ -218,7 +235,7 @@ class FindBidder extends Behaviour {
                         myAgent.bidders[i] = result[i].getName();
                         System.out.println(myAgent.bidders[i].getName());
                     }
-                    myAgent.biddersFound = true;
+                    myAgent.biddersFound = true;                    
                 }
             }
             catch (FIPAException fe) {
@@ -297,18 +314,28 @@ class ReceiveBids extends Behaviour {
         if (myAgent.CFPSent) {
 
             // Receive all proposals/refusals from seller agents
-            ACLMessage reply = myAgent.receive(myAgent.mt);
-            if (reply != null) {
-                // Reply received
-                if (reply.getPerformative() == ACLMessage.PROPOSE) {
+            ACLMessage msg = myAgent.receive(myAgent.mt);
+            if (msg != null) {
+                // Bid received
+                if (msg.getPerformative() == ACLMessage.PROPOSE) {
 
                     // This is an offer 
-                    int price = Integer.parseInt(reply.getContent());
+                    int price = Integer.parseInt(msg.getContent());
                     if (myAgent.bestBidder == null || price > myAgent.bestPrice) {
                         // This is the best offer at present
                         myAgent.bestPrice = price;
-                        myAgent.bestBidder = reply.getSender();
+                        myAgent.bestBidder = msg.getSender();
                     }
+
+                    // Inform the bidder that the bid is received
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.INFORM);
+                    reply.setContent("Your bid is received");
+                    myAgent.send(reply);
+                }
+
+                if (msg.getPerformative() == ACLMessage.REFUSE){
+                    System.out.println(msg.getSender().getLocalName() + " is not joining this auction");
                 }
 
                 repliesCnt++;
@@ -380,7 +407,7 @@ class AnnounceWinnerAndUpdateCatalogue extends Behaviour {
                 myAgent.bestBidder = null;
             }
             else {
-                System.out.println("No winner.. Bids were insufficient.");
+                System.out.println("No winner.. Bids were insufficient");
             }
             isDone = true;
         }
