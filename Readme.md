@@ -12,27 +12,31 @@ Auctioneer is provided with a simple JFrame GUI to add more items to its auction
 
 A user can participate to the auction using BidderHuman agent. A JFrame GUI is provided for adding more money to the wallet and to send bids. The user can also refuse to participate on an item auction.
 
-### How to operate Auctioneer
+Below is a timeline example when executing one Auctioneer and Three BidderComp.
+
+![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/timeline.jpg)
+
+### How to Operate Auctioneer
 
 ![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/auctioneer.png)
 
-#### Adding item
+#### Adding Item
 
 Fill in `Item Name` and the `Initial Price`, and click `Add`.
 
-### How to operate BidderHuman
+### How to Operate BidderHuman
 
 ![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/bidder.png)
 
-#### Sending bid
+#### Sending Bid
 
 Fill in `Bid Price`, and click `Bid`.
 
-### Refusing to participate in an item auction
+### Refusing to Participate in an Item Auction
 
 Click `Rest`.
 
-### Adding more money
+### Adding More Money
 
 Fill in `Add money`, and click `Add`, then the GUI window will be refreshed.
 
@@ -42,15 +46,15 @@ Fill in `Add money`, and click `Add`, then the GUI window will be refreshed.
 - [Jade - JAVA Agent Development Framework](http://jade.tilab.com/)
 - [ant (optional)](http://ant.apache.org/bindownload.cgi)
 
-## How to build with ant
+## How to Build With ant
     
     $ ant
 
-## How to build without ant
+## How to Build Without ant
 
     $ javac -d classes -cp "lib/jade.jar" src/blindAuction/* 
 
-## Execute 
+## Running the Agents
 
 ### Execute sample
 #### For Windows
@@ -61,8 +65,10 @@ Run runExamples.bat
     $ ./runExamples.sh
 
 ### Execute Auctioneer, BidderComp, and BidderHuman
+Make sure to run `runActioneer` first
+
 #### For Windows
-Run the .bat files, but make sure you run runAuctioneer.bat first.
+Run the `runAuctioneer.bat` and `runBidder*.bat` files
 
 #### For Linux
 
