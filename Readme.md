@@ -12,23 +12,31 @@ Auctioneer is provided with a simple JFrame GUI to add more items to its auction
 
 A user can participate to the auction using BidderHuman agent. A JFrame GUI is provided for adding more money to the wallet and to send bids. The user can also refuse to participate on an item auction.
 
-Below is a timeline example when executing one Auctioneer and Three BidderComp.
+Below is a timeline example when executing one Auctioneer and three BidderComp.
 
 ![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/timeline.jpg)
 
-### How to Operate Auctioneer
+First, Auctioneer sends a `CFP` [ACL Message](http://www.fipa.org/specs/fipa00061/SC00061G.html), which is a signal that an auction has been commenced. 
+
+A BidderComp can respond to this message with a PROPOSE or a REFUSE message. In current implementation, where a BidderComp implements an ALL-IN strategy, a BidderComp sends a PROPOSE message if its budget is adequate to participate (i.e. the budget is more or equal to the auction item's initial price). If the budget is insufficient, then it sends a REFUSE message, which tells the Auctioneer that this agent is not participating in the current auction.
+
+Then, the Auctioneer finds the highest bidder within those proposals. If a highest bidder is found, then the auction item is immediately sold to that bidder by sending an ACCEPT_PROPOSAL message. If a highest bidder is not found, for example in a case when all bidders have insufficient funds, then the auction item is not sold to anyone.
+
+Responding to the ACCEPT_PROPOSAL message, the winner of the auction then reports back to the Auctioneer by sending an INFORM message, then the auction comes to an end.
+
+## How to Operate Auctioneer
 
 ![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/auctioneer.png)
 
-#### Adding Item
+### Adding Item
 
 Fill in `Item Name` and the `Initial Price`, and click `Add`.
 
-### How to Operate BidderHuman
+## How to Operate BidderHuman
 
 ![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/bidder.png)
 
-#### Sending Bid
+### Sending Bid
 
 Fill in `Bid Price`, and click `Bid`.
 
