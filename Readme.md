@@ -18,11 +18,11 @@ Below is a timeline example when executing one Auctioneer and three BidderComp.
 
 First, Auctioneer sends a `CFP` [ACL Message](http://www.fipa.org/specs/fipa00061/SC00061G.html), which is a signal that an auction has been commenced. 
 
-A BidderComp can respond to this message with a PROPOSE or a REFUSE message. In current implementation, where a BidderComp implements an ALL-IN strategy, a BidderComp sends a PROPOSE message if its budget is adequate to participate (i.e. the budget is more or equal to the auction item's initial price). If the budget is insufficient, then it sends a REFUSE message, which tells the Auctioneer that this agent is not participating in the current auction.
+A BidderComp can respond to this message with a `PROPOSE` or a `REFUSE` message. In current implementation, where a BidderComp implements an ALL-IN strategy, a BidderComp sends a `PROPOSE` message if its budget is adequate to participate (i.e. the budget is more or equal to the auction item's initial price). If the budget is insufficient, then it sends a `REFUSE` message, which tells the Auctioneer that this agent is not participating in the current auction.
 
-Then, the Auctioneer finds the highest bidder within those proposals. If a highest bidder is found, then the auction item is immediately sold to that bidder by sending an ACCEPT_PROPOSAL message. If a highest bidder is not found, for example in a case when all bidders have insufficient funds, then the auction item is not sold to anyone.
+Then, the Auctioneer finds the highest bidder within those proposals. If a highest bidder is found, then the auction item is immediately sold to that bidder by sending an `ACCEPT_PROPOSAL` message. If a highest bidder is not found, for example in a case when all bidders have insufficient funds, then the auction item is not sold to anyone.
 
-Responding to the ACCEPT_PROPOSAL message, the winner of the auction then reports back to the Auctioneer by sending an INFORM message, then the auction comes to an end.
+Responding to the `ACCEPT_PROPOSAL` message, the winner of the auction then reports back to the Auctioneer by sending an `INFORM` message, then the auction comes to an end.
 
 ## How to Operate Auctioneer
 
