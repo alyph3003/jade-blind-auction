@@ -14,15 +14,27 @@ A user can participate to the auction using BidderHuman agent. A JFrame GUI is p
 
 ### How to operate Auctioneer
 
-#### Adding book titles
+![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/auctioneer.png)
+
+#### Adding item
+
+Fill in `Item Name` and the `Initial Price`, and click `Add`.
 
 ### How to operate BidderHuman
 
-#### Adding money
+![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/bidder.png)
 
 #### Sending bid
 
+Fill in `Bid Price`, and click `Bid`.
+
 ### Refusing to participate in an item auction
+
+Click `Rest`.
+
+### Adding more money
+
+Fill in `Add money`, and click `Add`, then the GUI window will be refreshed.
 
 ## Prerequisites
 
