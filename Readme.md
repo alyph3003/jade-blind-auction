@@ -48,7 +48,7 @@ Click `Rest`.
 
 ### Adding More Money
 
-Fill in `Add money`, and click `Add`, then the GUI window will be refreshed.
+Fill in `Add money`, and click `Add`, then the GUI window will be refreshed and your money should be increased by now.
 
 ## Prerequisites
 
