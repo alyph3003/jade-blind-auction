@@ -103,5 +103,5 @@ This library is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 ## Acknowledgement
 
-This project is derived from [bookTrading](http://jade.tilab.com/documentation/examples/book-trading/)
+This project is derived from [bookTrading](http://jade.tilab.com/documentation/examples/book-trading/).
 
