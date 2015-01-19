@@ -26,6 +26,8 @@ Responding to the `ACCEPT_PROPOSAL` message, the winner of the auction then repo
 
 ## How to Operate Auctioneer
 
+When an Auctioneer is started, it will continue to execute until the GUI window is closed. If there are item(s) the auction catalogue, the item(s) will be brought to auction. If there is no item in the catalogue, the Auctioneer agent will wait until a new item is added to the catalogue (an item can be added using the GUI).
+
 ![](https://github.com/ardiyu07/jade-blind-auction/blob/master/blob/auctioneer.png)
 
 ### Adding Item
@@ -65,6 +67,8 @@ Fill in `Add money`, and click `Add`, then the GUI window will be refreshed.
 ## Running the Agents
 
 ### Execute sample
+This sample runs one Auctioneer and three BidderComp.
+
 #### For Windows
 Run runExamples.bat   
 
